@@ -241,9 +241,9 @@ mvn spring-boot:run
 
 | MSA | 기능 | port | 조회 API | Gateway 사용시 |
 |---|:---:|:---:|---|---|
-| App | 주문 관리 | 8081 | http://localhost:8081/orders | http://app:8080/orders |
-| Pay | 결제 관리 | 8083 | http://localhost:8082/payments | http://pay:8080/payments |
-| Store | 대리점 관리 | 8085 | http://localhost:8083/storeManages | http://store:8080/storeManages |
+| app | 주문 관리 | 8081 | http://localhost:8081/orders | http://app:8080/orders |
+| pay | 결제 관리 | 8083 | http://localhost:8082/payments | http://pay:8080/payments |
+| store | 대리점 관리 | 8085 | http://localhost:8083/storeManages | http://store:8080/storeManages |
 | customer | 모니터링 | 8084 | http://localhost:8084/customers | http://customer:8080/customers |
 
 ```
