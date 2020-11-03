@@ -159,6 +159,7 @@
 ### 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
 ![image](https://user-images.githubusercontent.com/73699193/97982527-45428300-1e17-11eb-8641-b658bab34fc6.png)
+
     - 컨텍스트 매핑하여 묶어줌.
     - 팀원 중 외국인이 투입되어 유비쿼터스 랭귀지인 영어로 변경	
 
@@ -169,45 +170,46 @@
     - View Model 추가
 
 ### 기능적 요구사항 검증
-```
+
 ![image](https://user-images.githubusercontent.com/73699193/97982759-96527700-1e17-11eb-9144-f95de1e0d01e.png)
-```
+
     - 고객이 APP에서 폰을 주문한다. (ok)
     - 고객이 결제한다. (ok)
     - 결제가 되면 주문 내역이 대리점에 전달된다. (ok)
     - 대리점에 주문 정보가 도착하면 배송한다. (ok)
-    - 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
-```
+	- 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
+
 ![image](https://user-images.githubusercontent.com/73699193/97982841-b2eeaf00-1e17-11eb-9f09-9b74f85a96ca.png)
-```
-    - 고객이 주문을 취소할 수 있다. (ok)
-    - 주문이 취소되면 결제가 취소된다. (ok)
-    - 고객이 결제상태를 APP에서  조회 할 수 있다. (ok)
-```
+
+	- 고객이 주문을 취소할 수 있다. (ok)
+	- 주문이 취소되면 결제가 취소된다. (ok)
+	- 고객이 결제상태를 APP에서  조회 할 수 있다. (ok)
+
 ![image](https://user-images.githubusercontent.com/73699193/97982928-d3b70480-1e17-11eb-957e-6a9093d2a0d7.png)
-    - 고객센터는 'customer'를 통해 PHONE82내의 모든 진행내역의 모니터링을 제공해야 한다.
-```
+  
+	- 고객센터는 'customer'를 통해 PHONE82내의 모든 진행내역의 모니터링을 제공해야 한다.
+
 
 ### 비기능 요구사항 검증
-```
+
 ![image](https://user-images.githubusercontent.com/73699193/97983019-f6e1b400-1e17-11eb-86ef-d43873ccbb7d.png)
-```
+
     - 1) 주문에 대해서는 결제가 처리되어야만 주문을 처리한다. (Req/Res)
     - 2) 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다. (Pub/sub)
     - 3) 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다. (Circuit breaker)
     - 4) 결제가 취소되면 주문정보에 업데이트가 되어야 한다. (SAGA, 보상트렌젝션)
     - 5) 고객센터용 모니터링 도구인 'customer'는 모든 진행내역을 수신해야하므로 성능을 위해 view로 구성한다. (CQRS, DML/SELECT 분리)
-```
+
 
 ## 헥사고날 아키텍처 다이어그램 도출 (Polyglot)
-```
+
 ![image](https://user-images.githubusercontent.com/70673885/97952091-99ca0c00-1ddf-11eb-809b-6e73618c0b17.png)
-```
+
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
     - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
     - 대리점의 경우 Polyglot 검증을 위해 Hsql로 셜계
-```
+
 
 # 구현:
 
