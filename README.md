@@ -512,11 +512,37 @@ http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 �
 
 # 운영
 
-## CI/CD 설정
+## Deploy / Pipeline
+- 네임스페이스 만들기
+kubectl create ns phone82
+kubectl get ns
+![image](https://user-images.githubusercontent.com/73699193/97960790-6d20ef00-1df5-11eb-998d-d5591975b5d4.png)
 
+- 폴더 만들기, 해당폴더로 이동
+mkdir phone82
+cd phone 82
+![image](https://user-images.githubusercontent.com/73699193/97961127-0ea84080-1df6-11eb-81b3-1d5e460d4c0f.png)
 
-각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 GCP를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
+- 소스 가져오기
+git clone https://github.com/phone82/gateway.git
+![image](https://user-images.githubusercontent.com/73699193/97957919-832bb100-1def-11eb-8ab7-eb969fc076af.png)
 
+- 빌드하기
+cd gateway
+mvn package -Dmaven.test.skip=true
+![image](https://user-images.githubusercontent.com/73699193/97958179-0cdb7e80-1df0-11eb-9271-89897de03509.png)
+
+- 도커라이징: Azure 레지스트리에 도커 이미지 푸시하기
+az acr build --registry admin02 --image admin02.azurecr.io/gateway:latest .
+![image](https://user-images.githubusercontent.com/73699193/97958428-807d8b80-1df0-11eb-959c-477a0fe4616d.png)
+
+- 컨테이너라이징: 디플로이 생성, 서비스 생성, 확인
+kubectl create deploy gateway --image=admin02.azurecr.io/gateway:latest -n phone82
+kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n phone82
+kubectl get all -n phone82
+![image](https://user-images.githubusercontent.com/73699193/97958667-04d00e80-1df1-11eb-9de2-95494b44c5ee.png)
+
+- app, pay, store, customer에도 동일한 작업 반복
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 
