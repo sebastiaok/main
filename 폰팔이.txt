@@ -10,7 +10,7 @@ http://www.msaez.io/#/courses/assessment/running@sk9th/team/jinslee924@gmail.com
 
 https://portal.azure.com
 admin02@gkn2019hotmail.onmicrosoft.com
-Skcc!2345
+Skcc!234
 
 1. 구독 > 종량제1 로 매핑 확인
 2. 리소스그룹
@@ -44,17 +44,29 @@ Azure 클러스터 토큰 가져오기
 -----------------------------------------------------------
 (네임스페이스 만들기)
 #kubectl create ns phone82
-#kubctl get ns
+#kubectl get ns
 #kubectl get all -n phone82
 
 (폴더 만들기)
 #mkdir phone82
 #cd phone82
 
-
-
 -----------------------------------------------------------
 [Deploy/ Pipeline]
+#kubectl delete deploy --all -n phone82
+#kubectl delete deploy gatew -n phone82
+#kubectl delete service --all -n phone82
+#kubectl delete horizontalpodautoscaler.autoscaling/pay  -n phone82
+
+#kubectl get all -n phone82
+
+#kubectl logs pod/app-fc5bd9ffc-6qfwk -f -n phone82
+
+
+
+#cd phone82
+
+
 
 (소스 가져오기)
 #git clone https://github.com/phone82/app.git
@@ -69,16 +81,32 @@ Azure 클러스터 토큰 가져오기
 #mvn package -Dmaven.test.skip=true
 
 
+
+
 (도커라이징 - Azure 레지스트리에 도커 이미지 푸시하기)
 #az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
+#az acr build --registry admin02 --image admin02.azurecr.io/pay:latest .
+#az acr build --registry admin02 --image admin02.azurecr.io/store:latest .
+#az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
+#az acr build --registry admin02 --image admin02.azurecr.io/gateway:latest .
 
 
 (컨테이너라이징-디플로이 생성)
 #kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
+#kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
+#kubectl create deploy store --image=admin02.azurecr.io/store:latest -n phone82
+#kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
+#kubectl create deploy gateway --image=admin02.azurecr.io/gateway:latest -n phone82
+
+
 #kubectl get all -n phone82
 
 (컨테이너라이징-서비스 생성)
 #kubectl expose deploy app --type="ClusterIP" --port=8080 -n phone82
+#kubectl expose deploy pay --type="ClusterIP" --port=8080 -n phone82
+#kubectl expose deploy store --type="ClusterIP" --port=8080 -n phone82
+#kubectl expose deploy customer --type="ClusterIP" --port=8080 -n phone82
+#kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n phone82
 
 (상세확인)
 #kubectl describe pod/app-fc5bd9ffc-p4fms -n phone82
@@ -89,26 +117,52 @@ Azure 클러스터 토큰 가져오기
 
 
 
-(배포)
-#kubectl create deploy app --image=phone82/app:latest -n phone82
-#kubectl get all -n phone82
+#kubectl get all -n phone82	(조회)
 #kubectl delete deploy app -n phone82  (삭제시)
 
 
-
+kubectl delete deploy,service --all -n phone82
 
 
 -----------------------------------------------------------
 [Gateway]
-Gateway > application.yml
+Gateway > application.yml 소스 확인
 
 
-http GET http://localhost:8080/orders
-http GET http://localhost:8080/payments
-http GET http://localhost:8080/stores
+#kubectl get all -n phone82
+>>>> service/gateway   ClusterIP   10.0.122.155   (IP확인)
+
+(httpie 실행)
+#kubectl exec -it httpie bin/bash 
+
+>>#http GET http://10.0.231.132:8080/orders
+>>#http GET http://10.0.241.163:8080/payments
+>>#http GET http://10.0.241.163:8080/storeManages
+>>#http GET http://10.0.241.163:8080/customer
+>>#exti  (나가지)
+
+
+http POST http://10.0.231.132:8080/orders item=dfdf qty=2
+
+
+http GET http://10.0.130.76:8080/orders
+
+kubectl exec -it pod/store-c49cbfc75-2bddw -- /bin/bash -n phone82
+kubectl exec -it pod/store-c49cbfc75-2bddw -- /bin/bash
+
+-----------------------------------------------------------
+(kafka 실행)
+#kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --topic phoneseller --create --partitions 1 --replication-factor 1
+
+(목록확인)
+#kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --list
+
+(모니터링)
+#kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic phoneseller --from-beginning
 
 
 
+kubectl exec -it pod/gateway-5956b9dd7b-jpk52 -n phone82 -- /bin/bash   
 
 
 -----------------------------------------------------------
@@ -137,27 +191,76 @@ hystrix:
             }
     }
 	
+(siege가 create 되어 있지 않으면)
+#kubectl run siege --image=apexacme/siege-nginx -n phone82 
 
-#siege -c100 -t60S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "iphone"}'
+(siege 들어가기)
+#kubectl exec -it pod/siege-5c7c46b788-qzwzb -c siege -n phone82 -- /bin/bash
+
+#siege -c100 -t60S -r10 --content-type "application/json" 'http://a:8080/orders POST {"item": "iphone"}'
 
 
+siege -c100 -t60S -r10 --content-type "application/json" 'http://10.0.200.168:8080/orders POST {"item": "chicken"}'
 
 -----------------------------------------------------------
 [Autoscale (HPA)]
-#kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=15
+
+kubectl get all -n phone82
+kubectl delete deploy,service,pod app -n phone82
+kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
+kubectl apply -f cloudbuild.yaml
+
+resources:
+	limits:
+	  cpu: 500m
+	requests:
+	  cpu: 200m
+
+#kubectl autoscale deploy app --min=1 --max=10 --cpu-percent=15 -n phone82
+#kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=15 -n phone82
+
+
+(별도 터미널 모니터링 )
+#kubectl get deploy app -w -n phone82
+#kubectl get deploy pay -w -n phone82
+
+(siege가 create 되어 있지 않으면)
+#kubectl run siege --image=apexacme/siege-nginx -n phone82 
+
+(siege 들어가기)
+#kubectl exec -it pod/siege-5c7c46b788-qzwzb -c siege -n phone82 -- /bin/bash
+
+#siege -c100 -t30S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "asdfasdf", "qty":2}'
 
 
 
-#siege -c100 -t120S -r10 --content-type "application/json" 'http://localhost:8081/orders POST {"item": "chicken"}'
+
+
 
 
 -----------------------------------------------------------
 [Zero-downtime deploy (Readiness Probe)]
 
 
+#kubectl set image deploy app app=admin02.azurecr.io/app:latest -n phone82
+#kubectl set image deploy pay pay=admin02.azurecr.io/pay:latest -n phone82
+#kubectl set image deploy gateway gateway=admin02.azurecr.io/gateway:latest -n phone82
+
+
+
+
 -----------------------------------------------------------
 [Config Map/ Persistence Volume]
 
+
+api:
+  url:
+    payment: http://localhost:8082
+
+
+api:
+  url:
+    payment: http://pay:8080
 
 -----------------------------------------------------------
 [Polyglot]
