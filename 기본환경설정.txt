@@ -18,4 +18,55 @@ spec:
 EOF
 
 -----------------------------------------------
+[시즈 설치]
+#apt-get update -y
+#apt-get install -y siege
 
+#kubectl run siege --image=apexacme/siege-nginx -n phone82 
+
+
+
+-----------------------------------------------
+6. Kafka 설치
+#curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+
+#kubectl --namespace kube-system create sa tiller
+
+#kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+
+#helm init --service-account tiller
+
+#kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+
+#helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+
+#helm repo update
+
+#helm install --name my-kafka --namespace kafka incubator/kafka
+
+
+
+
+
+7. Kafka 네임스페이스생성
+kubectl create ns kafka
+
+
+
+
+
+
+
+8. kafka 토픽만들기 (accommodation 이름으로토픽생성)
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --topic phoneseller --create --partitions 1 --replication-factor 1
+
+8. kafka 토픽만들기 (hotelmanage 이름으로토픽생성)
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --topic hotelmanage --create --partitions 1 --replication-factor 1
+
+-토픽 목록 확인
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --list
+
+-[참고]토픽 메세지 생성
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-producer --broker-list my-kafka:9092 --topic accommodation
+-[참고]토픽 확인
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic accommodation --from-beginning
