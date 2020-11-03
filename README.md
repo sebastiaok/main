@@ -216,7 +216,7 @@
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 
 gateway를 포함한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
-```
+
 cd app
 mvn spring-boot:run
 
@@ -232,7 +232,7 @@ mvn spring-boot:run
 cd gateway
 mvn spring-boot:run  
 
-```
+
 
 ## DDD 의 적용
 도메인 드리븐 디자인으로 업무영역(도메인)을 주요업무 기준으로 4개의 MSA를 도출하였다.
@@ -246,22 +246,21 @@ mvn spring-boot:run
 | store | 대리점 관리 | 8085 | http://localhost:8083/storeManages | http://store:8080/storeManages |
 | customer | 모니터링 | 8084 | http://localhost:8084/customers | http://customer:8080/customers |
 
-```
+
 
 ## 폴리글랏 퍼시스턴스
 대리점의 경우 H2 DB인 주문과 결제와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
 
-```
+
 app, pay, customer의 pom.xml 설정
-```
+
 ![image](https://user-images.githubusercontent.com/73699193/97972993-baf32280-1e08-11eb-8158-912e4d28d7ea.png)
 
 
-```
 store의 pom.xml 설정
-```
+
 ![image](https://user-images.githubusercontent.com/73699193/97973735-e0346080-1e09-11eb-9636-605e2e870fb0.png)
-```
+
 
 
 ## 동기식 호출 과 Fallback 처리
