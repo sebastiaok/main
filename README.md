@@ -31,7 +31,7 @@
 1. 고객이 APP에서 폰을 주문한다.
 1. 고객이 결제한다.
 1. 주문이 되면 주문 내역이 대리점에 전달된다.
-1. 대리점이 확인하여 주문수락하면 배송한다.
+1. 대리점에 주문 정보가 도착하면 배송한다.
 1. 배송이 되면 APP에서 배송상태를 조회할 수 있다.
 1. 고객이 주문을 취소할 수 있다.
 1. 주문이 취소되면 결제가 취소된다.
@@ -43,7 +43,7 @@
     1. 결제가 되지 않은 주문건은 아예 거래가 성립되지 않아야 한다.Sync 호출
     1. 결제가 취소되면 주문정보에 업데이트가 되어야 한다.SAGA, 보상 트랜젝션
 1. 장애격리
-    1. 대리점주가 퇴근하여 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다.Async (event-driven), Eventual Consistency
+    1. 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다.Async (event-driven), Eventual Consistency
     1. 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다.Circuit breaker, fallback  Circuit breaker, fallback
 1. 성능
     1. 고객센터용 모니터링 도구인 'customer'는 모든 진행내역을 수신해야하므로 성능을 위해 view로 구성한다. CQRS
@@ -132,16 +132,16 @@
 	- 주문정보전달됨  :  주문됨을 선택하여 제외
 
 ### 액터, 커맨드 부착하여 읽기 좋게
-![image](https://user-images.githubusercontent.com/70673885/97950160-58cef900-1dd9-11eb-81eb-dcc0e8b3308b.png)
+![image](https://user-images.githubusercontent.com/73699193/97982030-82f2dc00-1e16-11eb-821d-27351387f8ad.png)
 
 ### 어그리게잇으로 묶기
-![image](https://user-images.githubusercontent.com/70673885/97950343-e3175d00-1dd9-11eb-9851-28df89415eb8.png)
+![image](https://user-images.githubusercontent.com/73699193/97982108-a158d780-1e16-11eb-9270-6e9646268fd1.png)
 
     - 주문, 대리점관리, 결제 어그리게잇을 생성하고 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
 
 ### 바운디드 컨텍스트로 묶기
 
-![image](https://user-images.githubusercontent.com/70673885/97950660-fd056f80-1dda-11eb-9379-8f863e73a93b.png)
+![image](https://user-images.githubusercontent.com/73699193/97982213-c77e7780-1e16-11eb-87ef-03dbe66a6cf2.png)
 
     - 도메인 서열 분리 
         - Core Domain:  app(front), store : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 app 의 경우 1주일 1회 미만, store 의 경우 1개월 1회 미만
@@ -150,49 +150,49 @@
 
 ### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
 
-![image](https://user-images.githubusercontent.com/70673885/97950750-4eadfa00-1ddb-11eb-94c2-0a462423fc57.png)
+![image](https://user-images.githubusercontent.com/73699193/97982278-e3821900-1e16-11eb-97f4-fa2f59fc7ae0.png)
 
 ### 폴리시의 이동
 
-![image](https://user-images.githubusercontent.com/70673885/97950884-b106fa80-1ddb-11eb-8290-4f4522f0121d.png)
+![image](https://user-images.githubusercontent.com/73699193/97982413-19bf9880-1e17-11eb-9720-cd82cf1060ff.png)
 
 ### 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-![image](https://user-images.githubusercontent.com/70673885/97951126-7ce00980-1ddc-11eb-84ca-f8fc13abb44a.png)
+![image](https://user-images.githubusercontent.com/73699193/97982527-45428300-1e17-11eb-8641-b658bab34fc6.png)
     - 컨텍스트 매핑하여 묶어줌.
     - 팀원 중 외국인이 투입되어 유비쿼터스 랭귀지인 영어로 변경	
 
 ### 완성된 모형
 
-![image](https://user-images.githubusercontent.com/70673885/97951231-d5170b80-1ddc-11eb-9775-f8fdbcaf3bcb.png)
+![image](https://user-images.githubusercontent.com/73699193/97982584-60ad8e00-1e17-11eb-8fb6-af87b7c6ff91.png)
 
     - View Model 추가
 
 ### 기능적 요구사항 검증
 
-![image](https://user-images.githubusercontent.com/70673885/97951323-24f5d280-1ddd-11eb-87a7-25d3238da100.png)
+![image](https://user-images.githubusercontent.com/73699193/97982759-96527700-1e17-11eb-9144-f95de1e0d01e.png)
 
     - 고객이 APP에서 폰을 주문한다. (ok)
     - 고객이 결제한다. (ok)
     - 결제가 되면 주문 내역이 대리점에 전달된다. (ok)
-    - 대리점이 확인하여 주문수락하면 배송한다. (ok)
+    - 대리점에 주문 정보가 도착하면 배송한다. (ok)
     - 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
 
-![image](https://user-images.githubusercontent.com/70673885/97951384-5a022500-1ddd-11eb-8831-8d2ed6afb2ca.png)
+![image](https://user-images.githubusercontent.com/73699193/97982841-b2eeaf00-1e17-11eb-9f09-9b74f85a96ca.png)
     - 고객이 주문을 취소할 수 있다. (ok)
     - 주문이 취소되면 결제가 취소된다. (ok)
     - 고객이 결제상태를 APP에서  조회 할 수 있다. (ok)
 
-![image](https://user-images.githubusercontent.com/70673885/97951425-7bfba780-1ddd-11eb-8485-72b82c7d6309.png)
+![image](https://user-images.githubusercontent.com/73699193/97982928-d3b70480-1e17-11eb-957e-6a9093d2a0d7.png)
     - 고객센터는 'customer'를 통해 PHONE82내의 모든 진행내역의 모니터링을 제공해야 한다.
 
 
 ### 비기능 요구사항 검증
 
-![image](https://user-images.githubusercontent.com/70673885/97951881-f37e0680-1dde-11eb-9ac0-b4c5bd58a2e9.png)
+![image](https://user-images.githubusercontent.com/73699193/97983019-f6e1b400-1e17-11eb-86ef-d43873ccbb7d.png)
 
     - 1) 주문에 대해서는 결제가 처리되어야만 주문을 처리한다. (Req/Res)
-    - 2) 대리점주가 퇴근하여 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다. (Pub/sub)
+    - 2) 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다. (Pub/sub)
     - 3) 결제시스템이 과중되면 사용자를 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다. (Circuit breaker)
     - 4) 결제가 취소되면 주문정보에 업데이트가 되어야 한다. (SAGA, 보상트렌젝션)
     - 5) 고객센터용 모니터링 도구인 'customer'는 모든 진행내역을 수신해야하므로 성능을 위해 view로 구성한다. (CQRS, DML/SELECT 분리)
@@ -211,7 +211,8 @@
 
 # 구현:
 
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 
+gateway를 포함한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
 ```
 cd app
@@ -224,144 +225,40 @@ cd store
 mvn spring-boot:run  
 
 cd customer
-python policy-handler.py 
+mvn spring-boot:run  
+
+cd gateway
+mvn spring-boot:run  
+
 ```
 
 ## DDD 의 적용
+도메인 드리븐 디자인으로 업무영역(도메인)을 주요업무 기준으로 4개의 MSA를 도출하였다.
+분석/설계 단계에서 도출된 MSA는 총 4개로 아래와 같다.
+* customer 는 고객샌터에서 사용하는 모니터링뷰의 이름이다.(CQRS)
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 pay 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 하지만, 일부 구현에 있어서 영문이 아닌 경우는 실행이 불가능한 경우가 있기 때문에 계속 사용할 방법은 아닌것 같다. (Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 id 등은 한글로 식별자를 사용하는 경우 오류가 발생하는 것을 확인하였다)
-
-```
-package fooddelivery;
-
-import javax.persistence.*;
-import org.springframework.beans.BeanUtils;
-import java.util.List;
-
-@Entity
-@Table(name="결제이력_table")
-public class 결제이력 {
-
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id;
-    private String orderId;
-    private Double 금액;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public String getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
-    public Double get금액() {
-        return 금액;
-    }
-
-    public void set금액(Double 금액) {
-        this.금액 = 금액;
-    }
-
-}
+| MSA | 기능 | port | 조회 API | Gateway 사용시 |
+|---|:---:|:---:|---|---|
+| App | 주문 관리 | 8081 | http://localhost:8081/orders | http://app:8080/orders |
+| Pay | 결제 관리 | 8083 | http://localhost:8082/payments | http://pay:8080/payments |
+| Store | 대리점 관리 | 8085 | http://localhost:8083/storeManages | http://store:8080/storeManages |
+| customer | 모니터링 | 8084 | http://localhost:8084/customers | http://customer:8080/customers |
 
 ```
-- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
-```
-package fooddelivery;
-
-import org.springframework.data.repository.PagingAndSortingRepository;
-
-public interface 결제이력Repository extends PagingAndSortingRepository<결제이력, Long>{
-}
-```
-- 적용 후 REST API 의 테스트
-```
-# app 서비스의 주문처리
-http localhost:8081/orders item="통닭"
-
-# store 서비스의 배달처리
-http localhost:8083/주문처리s orderId=1
-
-# 주문 상태 확인
-http localhost:8081/orders/1
-
-```
-
 
 ## 폴리글랏 퍼시스턴스
-
-앱프런트 (app) 는 서비스 특성상 많은 사용자의 유입과 상품 정보의 다양한 콘텐츠를 저장해야 하는 특징으로 인해 RDB 보다는 Document DB / NoSQL 계열의 데이터베이스인 Mongo DB 를 사용하기로 하였다. 이를 위해 order 의 선언에는 @Entity 가 아닌 @Document 로 마킹되었으며, 별다른 작업없이 기존의 Entity Pattern 과 Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 MongoDB 에 부착시켰다
-
-```
-# Order.java
-
-package fooddelivery;
-
-@Document
-public class Order {
-
-    private String id; // mongo db 적용시엔 id 는 고정값으로 key가 자동 발급되는 필드기 때문에 @Id 나 @GeneratedValue 를 주지 않아도 된다.
-    private String item;
-    private Integer 수량;
-
-}
-
-
-# 주문Repository.java
-package fooddelivery;
-
-public interface 주문Repository extends JpaRepository<Order, UUID>{
-}
-
-# application.yml
-
-  data:
-    mongodb:
-      host: mongodb.default.svc.cluster.local
-    database: mongo-example
+대리점의 경우 H2 DB인 주문과 결제와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
 
 ```
-
-## 폴리글랏 프로그래밍
-
-고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
+app, pay, customer의 pom.xml 설정
 ```
-from flask import Flask
-from redis import Redis, RedisError
-from kafka import KafkaConsumer
-import os
-import socket
+![image](https://user-images.githubusercontent.com/73699193/97972993-baf32280-1e08-11eb-8158-912e4d28d7ea.png)
 
 
-# To consume latest messages and auto-commit offsets
-consumer = KafkaConsumer('fooddelivery',
-                         group_id='',
-                         bootstrap_servers=['localhost:9092'])
-for message in consumer:
-    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
-                                          message.offset, message.key,
-                                          message.value))
-
-    # 카톡호출 API
 ```
-
-파이선 애플리케이션을 컴파일하고 실행하기 위한 도커파일은 아래와 같다 (운영단계에서 할일인가? 아니다 여기 까지가 개발자가 할일이다. Immutable Image):
+store의 pom.xml 설정
 ```
-FROM python:2.7-slim
-WORKDIR /app
-ADD . /app
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
-ENV NAME World
-EXPOSE 8090
-CMD ["python", "policy-handler.py"]
+![image](https://user-images.githubusercontent.com/73699193/97973735-e0346080-1e09-11eb-9636-605e2e870fb0.png)
 ```
 
 
