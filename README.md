@@ -640,9 +640,11 @@ az acr build --registry admin02 --image admin02.azurecr.io/store:v4 .
 kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 ```
 - 기존 버전과 새 버전의 store pod 공존 중
+
 ![image](https://user-images.githubusercontent.com/73699193/98106161-65884580-1edc-11eb-9540-17a3c9bdebf3.png)
 
 - Availability: 100.00 % 확인
+
 ![image](https://user-images.githubusercontent.com/73699193/98106524-c152ce80-1edc-11eb-8e0f-3731ca2f709d.png)
 
 
@@ -692,6 +694,7 @@ http POST http://app:8080/orders item=dfdf2 qty=22
 ![image](https://user-images.githubusercontent.com/73699193/98110445-720f9c80-1ee2-11eb-851e-adcd1f2f7851.png)
 
 ![image](https://user-images.githubusercontent.com/73699193/98110782-f4985c00-1ee2-11eb-97a7-1fed3c6b042c.png)
+
 (pod 정보)
 
 
@@ -719,11 +722,11 @@ livenessProbe:
 ```
 ![image](https://user-images.githubusercontent.com/27958588/98096375-0839c780-1ecf-11eb-85fb-00e8252aa84a.jpg)
 
-- 적용 확인 1
+- store pod에 liveness가 적용된 부분 확인
 
 ![image](https://user-images.githubusercontent.com/27958588/98096393-0a9c2180-1ecf-11eb-8ac5-f6048160961d.jpg)
 
-- 적용 확인 2
+- store 서비스의 liveness가 발동되어 13번 retry 시도 한 부분 확인
 
 ![image](https://user-images.githubusercontent.com/27958588/98096461-20a9e200-1ecf-11eb-8b02-364162baa355.jpg)
 
