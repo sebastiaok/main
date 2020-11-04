@@ -265,27 +265,31 @@ siege -c100 -t60S -r10 --content-type "application/json" 'http://10.0.200.168:80
 kubectl get all -n phone82
 kubectl delete deploy,service,pod app -n phone82
 
+cd store
+kubectl apply -f kubernetes/deployment.yaml
+(설정 확인)
+kubectl get deply store -o yaml
 
 
+(deployment.yaml) ==> 캡쳐
 resources:
 	limits:
 	  cpu: 500m
 	requests:
 	  cpu: 200m
 
+(hpa 제거)
+kubectl get all -n phone82
 kubectl delete horizontalpodautoscaler.autoscaling/app  -n phone82
 
-
-kubectl autoscale deploy store --min=1 --max=10 --cpu-percent=5 -n phone82
-
-
-
-
-
+(autoscale 적용)
+kubectl autoscale deploy store --min=1 --max=10 --cpu-percent=15 -n phone82
 
 
 (별도 터미널 모니터링 )
 kubectl get deploy store -w -n phone82
+==> 캡쳐
+
 
 (siege가 create 되어 있지 않으면)
 kubectl run siege --image=apexacme/siege-nginx -n phone82 
@@ -294,24 +298,10 @@ kubectl run siege --image=apexacme/siege-nginx -n phone82
 kubectl get all -n phone82
 kubectl exec -it pod/siege-5c7c46b788-2xcnc -c siege -n phone82 -- /bin/bash
 
-
-
+(부하주기)
 siege -c100 -t120S -r10 -v --content-type "application/json" 'http://store:8080/storeManages POST {"orderId":"456", "process":"Payed"}'
+==> 캡쳐
 
-
-
-
-
-siege -c100 -t30S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "asdfasdf", "qty":2}'
-
-
-#siege -c100 -t30S -r10 --content-type "application/json" 'http://pay:8080/payments POST {"orderId": "123", "status":"O"}'
-
-
-siege -c200 -t120S   --content-type "application/json" 'http://pay:8080/payments POST {"orderId": "123", "status":"O"}'
-
-
-siege -c200 -t120S -v --content-type "application/json" 'http://pay:8080/payments'
 
 ==================================================================================
 [9]Zero-downtime deploy (Readiness Probe)
