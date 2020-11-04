@@ -1,29 +1,5 @@
 ![image](https://user-images.githubusercontent.com/70673885/97950284-bcf1bd00-1dd9-11eb-8c8a-b3459c710849.png)
 
-# 예제 - 휴대폰구매앱
-
-본 예제는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전단계를 커버하도록 구성한 예제입니다.
-이는 클라우드 네이티브 애플리케이션의 개발에 요구되는 체크포인트들을 통과하기 위한 예시 답안을 포함합니다.
-- 체크포인트 : https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
-
-
-# Table of contents
-
-- [예제 - 휴대폰구매앱](#---)
-  - [서비스 시나리오](#서비스-시나리오)
-  - [체크포인트](#체크포인트)
-  - [분석/설계](#분석설계)
-  - [구현:](#구현-)
-    - [DDD 의 적용](#ddd-의-적용)
-    - [폴리글랏 퍼시스턴스](#폴리글랏-퍼시스턴스)
-    - [폴리글랏 프로그래밍](#폴리글랏-프로그래밍)
-    - [동기식 호출 과 Fallback 처리](#동기식-호출-과-Fallback-처리)
-    - [비동기식 호출 과 Eventual Consistency](#비동기식-호출-과-Eventual-Consistency)
-  - [운영](#운영)
-    - [CI/CD 설정](#cicd설정)
-    - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출-서킷-브레이킹-장애격리)
-    - [오토스케일 아웃](#오토스케일-아웃)
-    - [무정지 재배포](#무정지-재배포)
 
 # 서비스 시나리오
 
@@ -123,11 +99,12 @@
 
 ### 이벤트 도출
 ![image](https://user-images.githubusercontent.com/70673885/97949704-dc87e600-1dd7-11eb-9525-544b2411cc51.png)
+
 ### 부적격 이벤트 탈락
 ![image](https://user-images.githubusercontent.com/70673885/97949767-0a6d2a80-1dd8-11eb-8c2f-fa445fa61418.png)
 
-    - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
-    - 폰종류가선택됨, 결제버튼클릭됨, 배송수량선택됨, 배송일자선택됨  :  UI 의 이벤트이지, 업무적인 의미의 이벤트가 아니라서 제외
+   - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
+	- 폰종류가선택됨, 결제버튼클릭됨, 배송수량선택됨, 배송일자선택됨  :  UI 의 이벤트이지, 업무적인 의미의 이벤트가 아니라서 제외
 	- 배송취소됨, 메시지발송됨  :  계획된 사업 범위 및 프로젝트에서 벗어서난다고 판단하여 제외
 	- 주문정보전달됨  :  주문됨을 선택하여 제외
 
@@ -145,7 +122,7 @@
 
     - 도메인 서열 분리 
         - Core Domain:  app(front), store : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 app 의 경우 1주일 1회 미만, store 의 경우 1개월 1회 미만
-        - Supporting Domain:  customer(고객센터view) : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
+        - Supporting Domain:  customer(view) : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
         - General Domain:  pay : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 
 
 ### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
@@ -173,11 +150,11 @@
 
 ![image](https://user-images.githubusercontent.com/73699193/97982759-96527700-1e17-11eb-9144-f95de1e0d01e.png)
 
-    - 고객이 APP에서 폰을 주문한다. (ok)
-    - 고객이 결제한다. (ok)
-    - 결제가 되면 주문 내역이 대리점에 전달된다. (ok)
-    - 대리점에 주문 정보가 도착하면 배송한다. (ok)
-	- 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
+   	- 고객이 APP에서 폰을 주문한다. (ok)
+   	- 고객이 결제한다. (ok)
+   	- 결제가 되면 주문 내역이 대리점에 전달된다. (ok)
+    	- 대리점에 주문 정보가 도착하면 배송한다. (ok)
+    	- 배송이 되면 APP에서 배송상태를 조회할 수 있다. (ok)
 
 ![image](https://user-images.githubusercontent.com/73699193/97982841-b2eeaf00-1e17-11eb-9f09-9b74f85a96ca.png)
 
@@ -505,9 +482,9 @@ kubectl get all -n phone82
 
 
 
--(별첨)deployment.yaml을 사용하여 배포 
+-(별첨)deployment.yml을 사용하여 배포 
 
-- deployment.yaml 편집
+- deployment.yml 편집
 ```
 namespace, image 설정
 env 설정 (config Map) 
@@ -517,7 +494,7 @@ resource 설정 (autoscaling)
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98092861-8182eb80-1eca-11eb-87c5-afa22140ebad.png)
 
-- deployment.yaml로 서비스 배포
+- deployment.yml로 서비스 배포
 ```
 cd app
 kubectl apply -f kubernetes/deployment.yml
@@ -702,7 +679,7 @@ http POST http://app:8080/orders item=dfdf2 qty=22
 ![image](https://user-images.githubusercontent.com/27958588/98096336-fb1cd880-1ece-11eb-9b99-3d704cd55fd2.jpg)
 
 
-- deployment.ymㅣ에 Liveness Probe 옵션 추가
+- deployment.yml 에 Liveness Probe 옵션 추가
 ```
 cd ~/phone82/store/kubernetes
 vi deployment.yml
