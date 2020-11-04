@@ -85,7 +85,7 @@ az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
 (x)kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
 
 kubectl apply -f kubernets/deployment.yaml
-
+![image](https://user-images.githubusercontent.com/73699193/98073118-f47c6a00-1eaa-11eb-836b-0f6fdfceede7.png)
 
 
 (pay 배포)
