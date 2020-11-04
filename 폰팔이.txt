@@ -67,25 +67,25 @@ kubectl get all -n phone82
 
 (deployment.yaml)
 namespace 추가
-image : 
-
-![image](https://user-images.githubusercontent.com/73699193/98073118-f47c6a00-1eaa-11eb-836b-0f6fdfceede7.png)
-
-
+image 
 
 
 (app 배포)
 cd ~/phone82
 kubectl delete deploy app -n phone82
+
 rm -rf app
 git clone https://github.com/phone82/app.git
+
 cd app
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
+
+
 (x)kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
 
-kubectl apply -f kubernets/deployment.yaml
-![image](https://user-images.githubusercontent.com/73699193/98073118-f47c6a00-1eaa-11eb-836b-0f6fdfceede7.png)
+
+
 
 
 (pay 배포)
@@ -96,8 +96,9 @@ git clone https://github.com/phone82/pay.git
 cd pay
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/pay:latest .
-kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
-kubectl apply -f de..yml --image=admin02.azurecr.io/pay:latest -n phone82
+
+(x)kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
+kubectl apply -f kubernetes/deployment.yml
 
 
 
@@ -109,7 +110,9 @@ git clone https://github.com/phone82/store.git
 cd store
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/store:latest .
-kubectl create deploy store --image=admin02.azurecr.io/store:latest -n phone82
+(x) kubectl create deploy store --image=admin02.azurecr.io/store:latest -n phone82
+kubectl apply -f kubernetes/deployment.yml
+
 
 
 (customer 배포)
@@ -123,6 +126,7 @@ az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
 kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
 
 
+
 (gateway 배포)
 cd ~/phone82
 kubectl delete deploy customer -n phone82
@@ -132,6 +136,9 @@ cd customer
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
 kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
+
+
+
 
 (서비스 생성)
 kubectl expose deploy app --type="ClusterIP" --port=8080 -n phone82
@@ -179,7 +186,7 @@ kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n phone82
 
 
 (상세확인)
-#kubectl describe pod/app-fc5bd9ffc-p4fms -n phone82
+#kubectl describe pod/store-546cffc894-r7jgb -n phone82
 
 (httpie 실행)
 #kubectl exec -it httpie bin/bash 
@@ -315,10 +322,32 @@ siege -c100 -t120S -r10 -v --content-type "application/json" 'http://store:8080/
 ==================================================================================
 [9]Zero-downtime deploy (Readiness Probe)
 
+kubectl get all -n phone82
+kubectl delete deploy store -n phone82       
+kubectl apply -f kubernetes/deployment.yml
+kubectl apply -f kubernetes/deployment.yml_b
 
-#kubectl set image deploy app app=admin02.azurecr.io/app:latest -n phone82
-#kubectl set image deploy pay pay=admin02.azurecr.io/pay:latest -n phone82
-#kubectl set image deploy gateway gateway=admin02.azurecr.io/gateway:latest -n phone82
+(사전에 다른 버전으로 생성 필요)
+az acr build --registry admin02 --image admin02.azurecr.io/store:v4 .
+
+(이미지 변경 배포)
+kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
+
+
+
+(siege가 create 되어 있지 않으면)
+kubectl run siege --image=apexacme/siege-nginx -n phone82 
+
+(siege 들어가기)
+kubectl get all -n phone82
+kubectl exec -it pod/siege-5c7c46b788-4rn4r -c siege -n phone82 -- /bin/bash
+
+kubectl delete deploy store -phone82
+
+(부하주기)
+siege -c100 -t100S -v --content-type "application/json" 'http://store:8080/storeManages'
+
+siege -c100 -t150S -v --content-type "application/json" 'http://app:8080/orders'
 
 
 
@@ -327,6 +356,8 @@ siege -c100 -t120S -r10 -v --content-type "application/json" 'http://store:8080/
 [10]Config Map/ Persistence Volume]
 
 app > application.yaml
+Deployment
+
 
 -default쪽에
 api:
@@ -338,10 +369,33 @@ api:
   url:
     payment: http://pay:8080
 
+(configMap 생성)
+kubectl create configmap apiurl --from-literal=url=http://pay:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n phone82
 
 
 
-kubectl create configmap hello-cm --from-literal=language=java
+
+kubectl logs pod/app-56f677d458-tqrzh -f -n phone82
+
+(httpie 실행)
+kubectl exec -it httpie bin/bash -n phone82
+
+http POST http://app:8080/orders item=dfdf qty=2
+
+
+(로그 확인)
+kubectl logs pod/app-56f677d458-tqrzh -f -n phone82
+
+
+kubectl get configmap apiurl -o yaml 
+kubectl get configmap apiurl -o yaml -n phone82
+
+
+kubectl delete configmap apiurl -n phone82
+
+
+kubectl get pod/app-56f677d458-tqrzh -n phone82 -o yaml | kubectl replace --force -f-
+kubectl get pod <pod_name> -n <namespace> -o yaml | kubectl replace --force -f-
 
 
 
@@ -371,7 +425,7 @@ cat pom.xml
 ==================================================================================
 [12]Self-healing (Liveness Probe)
 
-cd ~/phone82/app/kubernetes
+cd ~/phone82/store/kubernetes
 vi deployment.yml
 
 livenessProbe:
@@ -382,7 +436,7 @@ livenessProbe:
 
 kubectl apply -f deployment.yml -n phone82
 kubectl get all -n phone82
-kubectl describe deploy app -n phone82
+kubectl describe deploy store -n phone82
 
 
 kubectl delete deploy store -n phone82
