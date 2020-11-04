@@ -213,8 +213,7 @@
 
 # 구현:
 
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 
-gateway를 포함한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
+서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
 
 cd app
@@ -233,7 +232,6 @@ mvn spring-boot:run
 ## DDD 의 적용
 도메인 드리븐 디자인으로 업무영역(도메인)을 주요업무 기준으로 4개의 MSA를 도출하였다.
 분석/설계 단계에서 도출된 MSA는 총 4개로 아래와 같다.
-* customer 는 고객샌터에서 사용하는 모니터링뷰의 이름이다.(CQRS)
 
 | MSA | 기능 | port | 조회 API | Gateway 사용시 |
 |---|:---:|:---:|---|---|
@@ -513,7 +511,7 @@ kubectl get all -n phone82
 ```
 namespace, image 설정
 env 설정 (config Map) 
-readness 설정 (무정지 배포)
+readiness 설정 (무정지 배포)
 liveness 설정 (self-healing)
 resource 설정 (autoscaling)
 ```
@@ -619,16 +617,16 @@ kubectl get deploy store -w -n phone82
 ```
 kubectl apply -f kubernetes/deployment_readiness.yml
 ```
-- readness 옵션이 없는 경우 배포 중 서비스 요청처리 실패
+- readiness 옵션이 없는 경우 배포 중 서비스 요청처리 실패
 
 ![image](https://user-images.githubusercontent.com/73699193/98105334-2a394700-1edb-11eb-9633-f5c33c5dee9f.png)
 
 
-- deployment.yml에 readness 옵션을 추가 
+- deployment.yml에 readiness 옵션을 추가 
 
 ![image](https://user-images.githubusercontent.com/73699193/98107176-75ecf000-1edd-11eb-88df-617c870b49fb.png)
 
-- readness적용된 deployment.yml 적용
+- readiness적용된 deployment.yml 적용
 
 ```
 kubectl apply -f kubernetes/deployment.yml
@@ -695,10 +693,6 @@ http POST http://app:8080/orders item=dfdf2 qty=22
 
 ![image](https://user-images.githubusercontent.com/73699193/98110782-f4985c00-1ee2-11eb-97a7-1fed3c6b042c.png)
 
-(pod 정보)
-
-
-  ![image](https://user-images.githubusercontent.com/487999/79684133-1d6c4300-826a-11ea-94a2-602e61814ebf.png)
 
 
 ## Self-healing (Liveness Probe)
