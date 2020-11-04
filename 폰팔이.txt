@@ -270,10 +270,10 @@ hystrix:
 (siege 들어가기)
 #kubectl exec -it pod/siege-5c7c46b788-2xcnc -c siege -n phone82 -- /bin/bash
 
-#siege -c100 -t60S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "abc123", "qty":3}'
+siege -c100 -t60S -r10 -v --content-type "application/json" 'http://app:8080/orders POST {"item": "abc123", "qty":3}'
 
 
-siege -c100 -t60S -r10 --content-type "application/json" 'http://10.0.200.168:8080/orders POST {"item": "chicken"}'
+#siege -c100 -t60S -r10 --content-type "application/json" 'http://10.0.200.168:8080/orders POST {"item": "chicken"}'
 
 ==================================================================================
 [8]Autoscale (HPA)
