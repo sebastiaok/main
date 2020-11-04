@@ -56,14 +56,22 @@ Azure 클러스터 토큰 가져오기
 ==================================================================================
 [6]Deploy/ Pipeline
 
+(참고)
 #kubectl delete deploy --all -n phone82
 #kubectl delete deploy app -n phone82
 #kubectl delete service --all -n phone82
 kubectl delete horizontalpodautoscaler.autoscaling/store  -n phone82
-
 kubectl get all -n phone82
-
 #kubectl logs pod/app-6744bb7b47-lbtk9 -f -n phone82
+
+
+(deployment.yaml)
+namespace 추가
+image : 
+
+![image](https://user-images.githubusercontent.com/73699193/98073118-f47c6a00-1eaa-11eb-836b-0f6fdfceede7.png)
+
+
 
 
 (app 배포)
@@ -75,7 +83,8 @@ cd app
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
 (x)kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
-kubectl apply -f deploy.yaml
+
+kubectl apply -f kubernets/deployment.yaml
 
 
 
