@@ -59,9 +59,9 @@ Azure 클러스터 토큰 가져오기
 #kubectl delete deploy --all -n phone82
 #kubectl delete deploy app -n phone82
 #kubectl delete service --all -n phone82
-#kubectl delete horizontalpodautoscaler.autoscaling/pay  -n phone82
+kubectl delete horizontalpodautoscaler.autoscaling/store  -n phone82
 
-#kubectl get all -n phone82
+kubectl get all -n phone82
 
 #kubectl logs pod/app-6744bb7b47-lbtk9 -f -n phone82
 
@@ -74,7 +74,9 @@ git clone https://github.com/phone82/app.git
 cd app
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
-kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
+(x)kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
+kubectl apply -f deploy.yaml
+
 
 
 (pay 배포)
@@ -86,6 +88,8 @@ cd pay
 mvn package -Dmaven.test.skip=true
 az acr build --registry admin02 --image admin02.azurecr.io/pay:latest .
 kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
+kubectl apply -f de..yml --image=admin02.azurecr.io/pay:latest -n phone82
+
 
 
 (store 배포)
@@ -269,18 +273,22 @@ resources:
 	requests:
 	  cpu: 200m
 
-kubectl delete horizontalpodautoscaler.autoscaling/pay -n phone82
-#kubectl autoscale deploy app --min=1 --max=10 --cpu-percent=5 -n phone82
-#kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=5 -n phone82
-#kubectl autoscale deploy stroe --min=1 --max=10 --cpu-percent=5 -n phone82
+kubectl delete horizontalpodautoscaler.autoscaling/app  -n phone82
+
+
+kubectl autoscale deploy store --min=1 --max=10 --cpu-percent=5 -n phone82
+
+
+
+
+
 
 
 (별도 터미널 모니터링 )
-#kubectl get deploy app -w -n phone82
-#kubectl get deploy pay -w -n phone82
+kubectl get deploy store -w -n phone82
 
 (siege가 create 되어 있지 않으면)
-#kubectl run siege --image=apexacme/siege-nginx -n phone82 
+kubectl run siege --image=apexacme/siege-nginx -n phone82 
 
 (siege 들어가기)
 kubectl get all -n phone82
@@ -288,9 +296,7 @@ kubectl exec -it pod/siege-5c7c46b788-2xcnc -c siege -n phone82 -- /bin/bash
 
 
 
-siege -c200 -t120S   --content-type "application/json" 'http://store:8080/storeManages POST {"orderId":"456", "status":"payed"}'
-
-
+siege -c100 -t120S -r10 -v --content-type "application/json" 'http://store:8080/storeManages POST {"orderId":"456", "process":"Payed"}'
 
 
 
@@ -305,7 +311,7 @@ siege -c100 -t30S -r10 --content-type "application/json" 'http://app:8080/orders
 siege -c200 -t120S   --content-type "application/json" 'http://pay:8080/payments POST {"orderId": "123", "status":"O"}'
 
 
-siege -c200 -t120S   --content-type "application/json" 'http://pay:8080/payments'
+siege -c200 -t120S -v --content-type "application/json" 'http://pay:8080/payments'
 
 ==================================================================================
 [9]Zero-downtime deploy (Readiness Probe)
@@ -332,6 +338,12 @@ api:
 api:
   url:
     payment: http://pay:8080
+
+
+
+
+kubectl create configmap hello-cm --from-literal=language=java
+
 
 
 
@@ -374,8 +386,8 @@ kubectl get all -n phone82
 kubectl describe deploy app -n phone82
 
 
-kubectl delete deploy app -n phone82
-kubectl create -f deployment.yml -n phone82
+kubectl delete deploy store -n phone82
+kubectl create -f kubernetes/deployment.yml -n phone82
 
 
 
