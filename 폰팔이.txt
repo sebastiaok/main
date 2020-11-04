@@ -1,7 +1,7 @@
-Saga
-CQRS
-Correlation
-Req/Resp
+[1]Saga
+[2]CQRS
+[3]Correlation
+[4]Req/Resp
 
 http://www.msaez.io/#/courses/assessment/running@sk9th/team/jinslee924@gmail.com
 
@@ -51,23 +51,85 @@ Azure 클러스터 토큰 가져오기
 #mkdir phone82
 #cd phone82
 
------------------------------------------------------------
-[Deploy/ Pipeline]
+
+
+==================================================================================
+[6]Deploy/ Pipeline
+
 #kubectl delete deploy --all -n phone82
-#kubectl delete deploy gatew -n phone82
+#kubectl delete deploy app -n phone82
 #kubectl delete service --all -n phone82
 #kubectl delete horizontalpodautoscaler.autoscaling/pay  -n phone82
 
 #kubectl get all -n phone82
 
-#kubectl logs pod/app-fc5bd9ffc-6qfwk -f -n phone82
+#kubectl logs pod/app-6744bb7b47-lbtk9 -f -n phone82
 
 
+(app 배포)
+cd ~/phone82
+kubectl delete deploy app -n phone82
+rm -rf app
+git clone https://github.com/phone82/app.git
+cd app
+mvn package -Dmaven.test.skip=true
+az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
+kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
 
-#cd phone82
+
+(pay 배포)
+cd ~/phone82
+kubectl delete deploy pay -n phone82
+rm -rf pay
+git clone https://github.com/phone82/pay.git
+cd pay
+mvn package -Dmaven.test.skip=true
+az acr build --registry admin02 --image admin02.azurecr.io/pay:latest .
+kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
 
 
+(store 배포)
+cd ~/phone82
+kubectl delete deploy store -n phone82
+rm -rf store
+git clone https://github.com/phone82/store.git
+cd store
+mvn package -Dmaven.test.skip=true
+az acr build --registry admin02 --image admin02.azurecr.io/store:latest .
+kubectl create deploy store --image=admin02.azurecr.io/store:latest -n phone82
 
+
+(customer 배포)
+cd ~/phone82
+kubectl delete deploy customer -n phone82
+rm -rf customer
+git clone https://github.com/phone82/customer.git
+cd customer
+mvn package -Dmaven.test.skip=true
+az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
+kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
+
+
+(gateway 배포)
+cd ~/phone82
+kubectl delete deploy customer -n phone82
+rm -rf customer
+git clone https://github.com/phone82/customer.git
+cd customer
+mvn package -Dmaven.test.skip=true
+az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
+kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
+
+(서비스 생성)
+kubectl expose deploy app --type="ClusterIP" --port=8080 -n phone82
+kubectl expose deploy pay --type="ClusterIP" --port=8080 -n phone82
+kubectl expose deploy store --type="ClusterIP" --port=8080 -n phone82
+kubectl expose deploy customer --type="ClusterIP" --port=8080 -n phone82
+kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n phone82
+
+
+-----------------------------------------------------------------------------------
+[위 빌드 배포 참고용도]
 (소스 가져오기)
 #git clone https://github.com/phone82/app.git
 #git clone https://github.com/phone82/pay.git
@@ -75,13 +137,9 @@ Azure 클러스터 토큰 가져오기
 #git clone https://github.com/phone82/customer.git
 #git clone https://github.com/phone82/gateway.git
 
-
 (빌드하기)
 #cd app
 #mvn package -Dmaven.test.skip=true
-
-
-
 
 (도커라이징 - Azure 레지스트리에 도커 이미지 푸시하기)
 #az acr build --registry admin02 --image admin02.azurecr.io/app:latest .
@@ -90,14 +148,12 @@ Azure 클러스터 토큰 가져오기
 #az acr build --registry admin02 --image admin02.azurecr.io/customer:latest .
 #az acr build --registry admin02 --image admin02.azurecr.io/gateway:latest .
 
-
 (컨테이너라이징-디플로이 생성)
 #kubectl create deploy app --image=admin02.azurecr.io/app:latest -n phone82
 #kubectl create deploy pay --image=admin02.azurecr.io/pay:latest -n phone82
 #kubectl create deploy store --image=admin02.azurecr.io/store:latest -n phone82
 #kubectl create deploy customer --image=admin02.azurecr.io/customer:latest -n phone82
 #kubectl create deploy gateway --image=admin02.azurecr.io/gateway:latest -n phone82
-
 
 #kubectl get all -n phone82
 
@@ -108,6 +164,7 @@ Azure 클러스터 토큰 가져오기
 #kubectl expose deploy customer --type="ClusterIP" --port=8080 -n phone82
 #kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n phone82
 
+
 (상세확인)
 #kubectl describe pod/app-fc5bd9ffc-p4fms -n phone82
 
@@ -115,17 +172,13 @@ Azure 클러스터 토큰 가져오기
 #kubectl exec -it httpie bin/bash 
 >># http GET http://10.0.134.61:8080/orders
 
-
-
 #kubectl get all -n phone82	(조회)
 #kubectl delete deploy app -n phone82  (삭제시)
+-----------------------------------------------------------------------------------
 
 
-kubectl delete deploy,service --all -n phone82
-
-
------------------------------------------------------------
-[Gateway]
+==================================================================================
+[5]Gateway
 Gateway > application.yml 소스 확인
 
 
@@ -133,18 +186,18 @@ Gateway > application.yml 소스 확인
 >>>> service/gateway   ClusterIP   10.0.122.155   (IP확인)
 
 (httpie 실행)
-#kubectl exec -it httpie bin/bash 
+#kubectl exec -it httpie bin/bash -n phone82
 
->>#http GET http://10.0.231.132:8080/orders
+>>#http GET http://app:8080/orders
 >>#http GET http://10.0.241.163:8080/payments
 >>#http GET http://10.0.241.163:8080/storeManages
 >>#http GET http://10.0.241.163:8080/customer
 >>#exti  (나가지)
-
+http GET http://app:8080/orders
 
 http POST http://10.0.231.132:8080/orders item=dfdf qty=2
 
-
+ttp://app:8080/orders 
 http GET http://10.0.130.76:8080/orders
 
 kubectl exec -it pod/store-c49cbfc75-2bddw -- /bin/bash -n phone82
@@ -165,8 +218,8 @@ kubectl exec -it pod/store-c49cbfc75-2bddw -- /bin/bash
 kubectl exec -it pod/gateway-5956b9dd7b-jpk52 -n phone82 -- /bin/bash   
 
 
------------------------------------------------------------
-[Circuit Breaker]
+==================================================================================
+[7]Circuit Breaker
 application.yml
 
 hystrix:
@@ -195,20 +248,20 @@ hystrix:
 #kubectl run siege --image=apexacme/siege-nginx -n phone82 
 
 (siege 들어가기)
-#kubectl exec -it pod/siege-5c7c46b788-qzwzb -c siege -n phone82 -- /bin/bash
+#kubectl exec -it pod/siege-5c7c46b788-2xcnc -c siege -n phone82 -- /bin/bash
 
-#siege -c100 -t60S -r10 --content-type "application/json" 'http://a:8080/orders POST {"item": "iphone"}'
+#siege -c100 -t60S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "abc123", "qty":3}'
 
 
 siege -c100 -t60S -r10 --content-type "application/json" 'http://10.0.200.168:8080/orders POST {"item": "chicken"}'
 
------------------------------------------------------------
-[Autoscale (HPA)]
+==================================================================================
+[8]Autoscale (HPA)
 
 kubectl get all -n phone82
 kubectl delete deploy,service,pod app -n phone82
-kubectl apply -f https://k8s.io/examples/application/php-apache.yaml
-kubectl apply -f cloudbuild.yaml
+
+
 
 resources:
 	limits:
@@ -216,8 +269,10 @@ resources:
 	requests:
 	  cpu: 200m
 
-#kubectl autoscale deploy app --min=1 --max=10 --cpu-percent=15 -n phone82
-#kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=15 -n phone82
+kubectl delete horizontalpodautoscaler.autoscaling/pay -n phone82
+#kubectl autoscale deploy app --min=1 --max=10 --cpu-percent=5 -n phone82
+#kubectl autoscale deploy pay --min=1 --max=10 --cpu-percent=5 -n phone82
+#kubectl autoscale deploy stroe --min=1 --max=10 --cpu-percent=5 -n phone82
 
 
 (별도 터미널 모니터링 )
@@ -228,18 +283,32 @@ resources:
 #kubectl run siege --image=apexacme/siege-nginx -n phone82 
 
 (siege 들어가기)
-#kubectl exec -it pod/siege-5c7c46b788-qzwzb -c siege -n phone82 -- /bin/bash
-
-#siege -c100 -t30S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "asdfasdf", "qty":2}'
-
+kubectl get all -n phone82
+kubectl exec -it pod/siege-5c7c46b788-2xcnc -c siege -n phone82 -- /bin/bash
 
 
 
+siege -c200 -t120S   --content-type "application/json" 'http://store:8080/storeManages POST {"orderId":"456", "status":"payed"}'
 
 
 
------------------------------------------------------------
-[Zero-downtime deploy (Readiness Probe)]
+
+
+
+
+siege -c100 -t30S -r10 --content-type "application/json" 'http://app:8080/orders POST {"item": "asdfasdf", "qty":2}'
+
+
+#siege -c100 -t30S -r10 --content-type "application/json" 'http://pay:8080/payments POST {"orderId": "123", "status":"O"}'
+
+
+siege -c200 -t120S   --content-type "application/json" 'http://pay:8080/payments POST {"orderId": "123", "status":"O"}'
+
+
+siege -c200 -t120S   --content-type "application/json" 'http://pay:8080/payments'
+
+==================================================================================
+[9]Zero-downtime deploy (Readiness Probe)
 
 
 #kubectl set image deploy app app=admin02.azurecr.io/app:latest -n phone82
@@ -249,27 +318,64 @@ resources:
 
 
 
------------------------------------------------------------
-[Config Map/ Persistence Volume]
+==================================================================================
+[10]Config Map/ Persistence Volume]
 
+app > application.yaml
 
+-default쪽에
 api:
   url:
     payment: http://localhost:8082
 
-
+-docker 쪽에
 api:
   url:
     payment: http://pay:8080
 
------------------------------------------------------------
-[Polyglot]
 
 
------------------------------------------------------------
-[Self-healing (Liveness Probe)]
+
+==================================================================================
+[11]Polyglot
+# store hsql로 확인
+
+cd ~/phone82/store
+cat pom.xml
+
+<!--<dependency>
+	<groupId>com.h2database</groupId>
+	<artifactId>h2</artifactId>
+	<scope>runtime</scope>
+</dependency>-->
+<dependency>
+	<groupId>org.hsqldb</groupId>
+	<artifactId>hsqldb</artifactId>
+	<scope>runtime</scope>
+</dependency>
 
 
+
+
+==================================================================================
+[12]Self-healing (Liveness Probe)
+
+cd ~/phone82/app/kubernetes
+vi deployment.yml
+
+livenessProbe:
+	tcpSocket:
+	  port: 8081
+	initialDelaySeconds: 5
+	periodSeconds: 5
+
+kubectl apply -f deployment.yml -n phone82
+kubectl get all -n phone82
+kubectl describe deploy app -n phone82
+
+
+kubectl delete deploy app -n phone82
+kubectl create -f deployment.yml -n phone82
 
 
 
