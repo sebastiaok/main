@@ -61,10 +61,11 @@
 ### 부적격 이벤트 탈락
 ![image](https://user-images.githubusercontent.com/70673885/97949767-0a6d2a80-1dd8-11eb-8c2f-fa445fa61418.png)
 
-   - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
+    - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
 	- 폰종류가선택됨, 결제버튼클릭됨, 배송수량선택됨, 배송일자선택됨  :  UI 의 이벤트이지, 업무적인 의미의 이벤트가 아니라서 제외
 	- 배송취소됨, 메시지발송됨  :  계획된 사업 범위 및 프로젝트에서 벗어서난다고 판단하여 제외
 	- 주문정보전달됨  :  주문됨을 선택하여 제외
+	
 
 ### 액터, 커맨드 부착하여 읽기 좋게
 ![image](https://user-images.githubusercontent.com/73699193/97982030-82f2dc00-1e16-11eb-821d-27351387f8ad.png)
@@ -138,7 +139,7 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출 (Polyglot)
 
-![image](https://user-images.githubusercontent.com/70673885/97952091-99ca0c00-1ddf-11eb-809b-6e73618c0b17.png)
+![image](https://user-images.githubusercontent.com/73699193/98181638-162b2f00-1f47-11eb-81af-0b71ff811e1c.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
@@ -150,7 +151,7 @@
 
 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
-
+```
 cd app
 mvn spring-boot:run
 
@@ -162,19 +163,20 @@ mvn spring-boot:run
 
 cd customer
 mvn spring-boot:run  
-
+```
 
 ## DDD 의 적용
-도메인 드리븐 디자인으로 업무영역(도메인)을 주요업무 기준으로 4개의 MSA를 도출하였다.
-분석/설계 단계에서 도출된 MSA는 총 4개로 아래와 같다.
 
-| MSA | 기능 | port | 조회 API | Gateway 사용시 |
-|---|:---:|:---:|---|---|
-| app | 주문 관리 | 8081 | http://localhost:8081/orders | http://app:8080/orders |
-| pay | 결제 관리 | 8083 | http://localhost:8082/payments | http://pay:8080/payments |
-| store | 대리점 관리 | 8085 | http://localhost:8083/storeManages | http://store:8080/storeManages |
-| customer | 모니터링 | 8084 | http://localhost:8084/customers | http://customer:8080/customers |
+각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 app 마이크로 서비스). 
+이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 
+하지만, 일부 구현에 있어서 영문이 아닌 경우는 실행이 불가능한 경우가 있기 때문에 계속 사용할 방법은 아닌것 같다. 
+(Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 id 등은 한글로 식별자를 사용하는 경우 오류가 발생하는 것을 확인하였다)
 
+![image](https://user-images.githubusercontent.com/73699193/98182350-e2e99f80-1f48-11eb-825c-da099795fe29.png)
+
+Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+
+![image](https://user-images.githubusercontent.com/73699193/98182486-378d1a80-1f49-11eb-8e14-0de7296978b5.png)
 
 
 ## 폴리글랏 퍼시스턴스
@@ -198,39 +200,12 @@ gateway > applitcation.yml 설정
 
 ![image](https://user-images.githubusercontent.com/73699193/98060621-5d54e980-1e8d-11eb-943c-692c5953c6a1.png)
 
-생성한 gateway 서비스 run
-```
-cd gateway
-mvn spring-boot:run  
-```
+gateway 테스트
 
-httpie 실행
 ```
-kubectl exec -it httpie bin/bash -n phone82
+http POST http://gateway:8080/orders item=test qty=1
 ```
-app 확인
-```
-http GET http://app:8080/orders/1
-```
-![image](https://user-images.githubusercontent.com/73699193/98065273-a01bbf00-1e97-11eb-9942-f036600ddc89.png)
-
-pay 확인
-```
-http GET http://pay:8080/payments/1
-```
-![image](https://user-images.githubusercontent.com/73699193/98065346-c80b2280-1e97-11eb-9d79-50333308ba0c.png)
-
-store 확인
-```
-http GET http://store:8080/storeManages/1
-```
-![image](https://user-images.githubusercontent.com/73699193/98065418-ebce6880-1e97-11eb-8bd4-3916202239ee.png)
-
-customer 확인
-```
-http GET http://customer:8080/customers/1
-```
-![image](https://user-images.githubusercontent.com/73699193/98065232-867a7780-1e97-11eb-90ba-fe882c68fb71.png)
+![image](https://user-images.githubusercontent.com/73699193/98183284-2d6c1b80-1f4b-11eb-90ad-c95c4df1f36a.png)
 
 
 
@@ -256,7 +231,7 @@ public interface PaymentService {
 ![image](https://user-images.githubusercontent.com/73699193/98065833-b1190000-1e98-11eb-9e44-84d4961011ed.png)
 
 
-- 주문을 받은 직후(@PostPersist) 결제를 요청하도록 처리
+- 주문을 받은 직후 결제를 요청하도록 처리
 ```
 # (app) Order.java (Entity)
 
@@ -273,7 +248,7 @@ public interface PaymentService {
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98066539-a6f80100-1e9a-11eb-8dd8-bf213d90e5fb.png)
 
-- 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
+- 동기식 호출이 적용되서 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
 
 ```
 #결제(pay) 서비스를 잠시 내려놓음 (ctrl+c)
@@ -293,9 +268,6 @@ http http://localhost:8081/orders item=note21 qty=2   #Success
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98074359-9f8e2300-1ead-11eb-8854-0449a65ff55c.png)
 
-- 또한 과도한 요청시에 서비스 장애가 도미노 처럼 벌어질 수 있다. (서킷브레이커는 운영단계에서 설명한다.)
-
-
 
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 
@@ -305,62 +277,12 @@ http http://localhost:8081/orders item=note21 qty=2   #Success
  
 - 결제승인이 되었다(payCompleted)는 도메인 이벤트를 카프카로 송출한다(Publish)
  
-```
-# (pay) Payment.java (Entity)
-
-package phoneseller;
-
-@Entity
-@Table(name="Payment_table")
-public class Payment {
-
- ...
-
-        PayCompleted payCompleted = new PayCompleted();
-        BeanUtils.copyProperties(this, payCompleted);
-        System.out.println(payCompleted.toJson());
-        payCompleted.publishAfterCommit();  
-		
- ...
- 
-}
-```
 ![image](https://user-images.githubusercontent.com/73699193/98075277-6f478400-1eaf-11eb-88c8-2b4a7736e56b.png)
+
 
 - 대리점(store)에서는 결제승인(payCompleted) 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
 - 주문접수(OrderReceive)는 송출된 결제승인(payCompleted) 정보를 store의 Repository에 저장한다.:
  
-```
-# (store) PolicyHandler.java
-
-@Service
-public class PolicyHandler{
-
-    @Autowired
-    StoreManageRepository storeManageRepository;
-
-    @StreamListener(KafkaProcessor.INPUT)
-    public void onStringEventListener(@Payload String eventString){
-
-    }
-
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverPayCompleted_OrderReceive(@Payload PayCompleted payCompleted){
-
-        if(payCompleted.isMe()){
-            System.out.println("##### listener OrderReceive : " + payCompleted.toJson());
-            System.out.println("store_policy_paycompleted_orderreceive");
-
-            StoreManage storeManage = new StoreManage();
-            storeManage.setOrderId(payCompleted.getOrderId());
-            storeManage.setProcess(payCompleted.getProcess());
-            storeManageRepository.save(storeManage);
-        }
-    }
-
-}
-
-```
 ![image](https://user-images.githubusercontent.com/73699193/98076059-e0d40200-1eb0-11eb-94ad-c4ea114cb3aa.png)
 
 
@@ -388,6 +310,7 @@ http get http://localhost:8081/orders     # 'Payed' 였던 상태값이 'Shipped
 # 운영
 
 ## Deploy / Pipeline
+
 - 네임스페이스 만들기
 ```
 kubectl create ns phone82
@@ -496,11 +419,7 @@ hystrix:
 ```
 siege -c100 -t60S -r10 -v --content-type "application/json" 'http://app:8080/orders POST {"item": "abc123", "qty":3}'
 ```
-- 부하 발생하여 CB가 발동하여 요청 실패처리됨
-
-![image](https://user-images.githubusercontent.com/73699193/98098327-87c89600-1ed1-11eb-8b3f-c6594b94841c.png)
-
-- 밀린 부하가 pay에서 처리되면서 다시 order를 받기 시작 
+- 부하 발생하여 CB가 발동하여 요청 실패처리하였고, 밀린 부하가 pay에서 처리되면서 다시 order를 받기 시작 
 
 ![image](https://user-images.githubusercontent.com/73699193/98098702-07eefb80-1ed2-11eb-94bf-316df4bf682b.png)
 
@@ -545,7 +464,7 @@ kubectl get deploy store -w -n phone82
 
 ## 무정지 재배포
 
-* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
+* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscale 이나 CB 설정을 제거함
 
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 함.
